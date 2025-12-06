@@ -1,0 +1,102 @@
+Tables creation :
+
+
+CREATE TABLE Authors (
+    authorID INT PRIMARY KEY IDENTITY,
+    name NVARCHAR(100) NOT NULL,
+    country NVARCHAR(50)
+);
+-- Creation of the table "Authors" containing the primary key "authorID" in order to identify the authors while giving their names and birth country.
+
+
+CREATE TABLE Books (
+    bookID INT PRIMARY KEY IDENTITY,
+    title NVARCHAR(200) NOT NULL,
+    genre NVARCHAR(50),
+    authorID INT FOREIGN KEY REFERENCES Authors(authorID)
+);
+
+-- Creation of the "Books" table, containing "bookID" as the primary key that uniquely identifies each book (alongside with their title and genre). The foreign key "authorID" here is referencing "Authors(authorID)" in order to link each book to its respective author.
+
+
+CREATE TABLE Members (
+    memberID INT PRIMARY KEY IDENTITY,
+    fullName NVARCHAR(100) NOT NULL,
+    joinDate DATE DEFAULT GETDATE()
+);
+
+-- Creation of the table "Members" containing "memberID" as a primary key so as to identify the customers with their full names (column "fullName") and their adhesion date (column "joinDate") (default getdate allows to get the system's default date).
+
+
+CREATE TABLE Borrowings (
+    borrowID INT PRIMARY KEY IDENTITY,
+    bookID INT FOREIGN KEY REFERENCES Books(bookID),
+    memberID INT FOREIGN KEY REFERENCES Members(memberID),
+    borrowDate DATE DEFAULT GETDATE(),
+    returnDate DATE NULL
+);
+
+-- Creation of the "Borrowings" table containing "borrowID" as the primary key in order to uniquely identify each borrowings, foreign key "bookID" references Books(bookID) to link its ID to the corresponding book, foreign key "memberID" references Members(memberID) to document which customer borrowed the book, finally including the date of the borrow.
+
+
+
+Inserting data :
+
+
+INSERT INTO Authors (name, country) VALUES
+('Frank Herbert', 'USA'),
+('J.K. Rowling', 'UK'),
+('Haruki Murakami', 'Japan');
+
+-- Insertion of data into the "Authors" table so as to register the full name and home land of each authors whose books are available.
+
+
+INSERT INTO Books (title, genre, authorID) VALUES
+('Dune', 'Science Fiction', 1),
+('Harry Potter and the Sorcerer''s Stone', 'Fantasy', 2),
+('Kafka on the Shore', 'Fiction', 3);
+
+-- Insertion of data into the "Books" table so as to register the titlem genre and authors ID of these books.
+
+
+INSERT INTO Members (fullName) VALUES
+('Alice Tremblay'),
+('Bob Gagnon'),
+('Charlie Roy');
+
+-- Data insertion into the table "Members" so as to register the full names of each customers of the library.
+
+
+INSERT INTO Borrowings (bookID, memberID, borrowDate) VALUES
+(1, 1, '2025-11-01'),
+(2, 2, '2025-11-05');
+
+-- Insertion of data into the table "Borrowings" to identify which book was borrowed by which customer and when.
+
+
+
+SELECT M.FullName, B.Title, BR.BorrowDate, BR.ReturnDate
+FROM Borrowings BR
+JOIN Members M ON BR.MemberID = M.MemberID
+JOIN Books B ON BR.BookID = B.BookID;
+
+-- Selects the tables "Members", "Books" and "Borrowings", keeping the FullName, Title, BorrowDate and Return date rows, the "JOINS" combine each tables accordingly to identify the full name of the customer tied to the MemberID on the book that has been borrowed, this query identifies all borrowed books.
+
+
+SELECT M.FullName, B.Title
+FROM Borrowings BR
+JOIN Members M ON BR.MemberID = M.MemberID
+JOIN Books B ON BR.BookID = B.BookID
+WHERE BR.ReturnDate IS NULL;
+
+-- Selects the tables "Members" and "Books" tables with the "Borrowing" table to identify members and books IDs where the return date is non existent : This query identifies who hasn't returned a book yet.
+
+
+SELECT A.Name, COUNT(*) AS TimesBorrowed
+FROM Borrowings BR
+JOIN Books B ON BR.BookID = B.BookID
+JOIN Authors A ON B.AuthorID = A.AuthorID
+GROUP BY A.Name
+ORDER BY TimesBorrowed DESC;
+
+-- Selects the "Authors" table and uses "COUNT(*)" to see how many times a certain book from a certain author was borrowed. "JOINS" combine the "Books" table with the "Borrowings" table to keep the book's ID, as well as the "Authors" table with the "Books" table to keep the author's ID. The results are grouped based on the author's name ordered in a descending order. This query identifies who is the most popular author based on the books borrowings.
